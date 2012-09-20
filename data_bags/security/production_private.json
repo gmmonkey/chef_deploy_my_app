@@ -1,0 +1,7 @@
+{
+  "id": "production_private",
+  "postgresql_passwords": {
+    "my_app": "password",
+  },
+  "comment": "ordinarily, I would have this file as an encrypted databag"
+}

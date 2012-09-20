@@ -1,0 +1,8 @@
+PS1_LIVE=
+if [ "$(CHEF_ENVIRONMENT)" == "production" ];then
+  PS1_LIVE='\[\e[5;37;41m\] LIVE \[\e[0m\]'
+fi
+
+export PS1="$PS1_LIVE"' \[\e[1;31m\]\u\[\e[0m\]@\[\e[1;32m\]\h \[\e[1;34m\]\w]\[\e[0m\]\$ '
+alias ls='ls -a -F --color'
+alias ssh='ssh -A'

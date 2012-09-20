@@ -1,0 +1,117 @@
+bash -c '
+
+server_alive() {
+  _TARGET_IP=$1
+  _PINGTEST=$( ping -n -W 10 -q -c 1 ${_TARGET_IP} | grep received | cut -d, -f 2 | sed -e "s/[^0-9]*//g" )
+  if [ "${_PINGTEST}" == "0" ];then
+    echo "false"
+  else
+    echo "true"
+  fi
+}
+
+chef_host() {
+  _CHEF_URL=$1
+  echo ${_CHEF_URL} | sed -e "s/.*\/\///" -e "s/:.*//" -e "s/\/.*//"
+}
+
+pkg_exists() {
+  _exist=$( apt-show-versions $1 | grep "not installed" )
+  if [ -z "${_exist}" ];then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+install_pkgs() {
+  for pkg in ${*} ; do
+    echo "INSTALLING $pkg"
+    if [ "$(pkg_exists $pkg)" == "false" ];then
+      apt-get -qq install -y $pkg
+      if [ "$?" != "0" ];then
+        error "$pkg did not install correctly"
+      fi
+    else
+      echo "$pkg already installed. Skipping"
+    fi
+  done
+}
+
+abort() {
+  echo -e "\033[5;41m\a\a\a***$1\033[00m"
+  cleanup 
+  exit 1
+}
+
+error() {
+  echo -e "\033[1;31m\a\a\a** $1\033[00m"
+}
+
+warn() {
+  echo -e "\033[1;33m*  $1\033[00m"
+}
+
+info() {
+  echo -e "\033[0;37m-  $1\033[00m"
+}
+
+apt-get -qq install apt-show-versions
+install_pkgs curl
+install_pkgs wget
+apt-get -qq update  
+apt-get -qq install ruby rubygems
+
+if [ ! -f /root/Gemfile ];then
+
+  ( cat <<EOF
+source "http://rubygems.org"
+
+gem "ohai"
+gem "chef"
+EOF
+ ) > /root/Gemfile
+
+fi
+
+sudo su -s /bin/bash -l -c "gem install rake -d --no-rdoc --no-ri"
+sudo su -s /bin/bash -l -c "gem install bundler -d --no-rdoc --no-ri"
+sudo su -s /bin/bash -l -c "bundle install"
+
+groupadd -g 801 chef
+useradd -u 801 -g 801 chef
+
+if [ ! -d /etc/chef ];then
+  mkdir /etc/chef
+fi
+
+if [ ! -f /etc/chef/validation.pem ];then
+  ( cat <<EOF
+<%= IO.read(Chef::Config[:validation_key]) %>
+EOF
+  ) > /tmp/validation.pem
+  awk NF /tmp/validation.pem > /etc/chef/validation.pem
+  rm /tmp/validation.pem
+fi
+
+if [ ! -f /etc/chef/client.rb ];then
+  ( cat <<EOP
+log_level        :info
+log_location     STDOUT
+client_key       "/etc/chef/client.pem"
+chef_server_url  "${USE_CHEF_SERVER}"
+validation_client_name "<%= Chef::Config[:validation_client_name] %>"
+validation_key   "/etc/chef/validation.pem"
+<% if @config[:chef_node_name] == nil %>
+# Using default node name
+<% else %>
+node_name "<%= @config[:chef_node_name] %>"
+<% end %> 
+EOP
+  ) > /etc/chef/client.rb
+fi
+
+chown chef:chef /etc/chef /etc/chef/validation.pem /etc/chef/client.rb
+
+sudo su -s /bin/bash -l -c "bundle exec chef-client"
+'

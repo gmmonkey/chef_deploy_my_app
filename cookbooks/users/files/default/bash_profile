@@ -1,0 +1,10 @@
+[[ -r /home/${USER}/.bashrc ]] && source /home/${USER}/.bashrc  # INCORPORATE_BASHRC
+
+if [ -d /home/${USER}/.bash_profile.d ];then  # INCORPORATE_BASHPROFILE_SNIPPETS
+  for i in $( find /home/${USER}/.bash_profile.d -type f )
+  do
+    if [ -f "$i" ];then
+        source $i
+    fi
+  done
+fi

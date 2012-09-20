@@ -1,0 +1,12 @@
+{
+  "id": "my_app",
+  "ssh_keys": [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDceQZs6jaqw16KnvhpOxIf825f+ayICPDyLg6X3kqNT3sgBlhv7AZtp2Kt+apKmd1d0MyWyPFyEhvnQwJ3prEuh1B1qHxtTEVmEb1OWACakYZghChayoq7RMykp36XQFSK3goL7yDnv//HIvFIswrRyplK+/OUru7vOTHDHBrGJiFJyhyJhJY0tJYDa8lZqnZ1Qsv3pxDRcOeM1d6PmcaXVC384/QMy5BHA0bUCAuvdy8oDBTfMt2JKKN51xYCadr0hppKqwEu5hKShitmyTlHpyy3KSy/k8+Oc1eX7xi9l3DJDZbUR4l7MEwOlk+HMmw9DK7cxiODdf1cEH9lg0QZ geoffmeakin@home"
+  ],
+  "groups": [],
+  "uid": 2001,
+  "gid": 2001,
+  "shell": "\/bin\/bash",
+  "comment": "User for my_app service"
+}
+
